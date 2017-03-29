@@ -1,4 +1,5 @@
 import rp from 'request-promise';
+import helper from './helper.js';
 
 const apis = {
   fetchCharacter: (req, res) => {
@@ -15,6 +16,7 @@ const apis = {
       .catch(err => console.error(err));
   },
   fetchSortedCharacters: (req, res) => {
+    const sortParam = req.params.sortKey
     let parsedChars = [];
     let promises = [];
     for(let i = 1; i < 6; i++) {
@@ -27,18 +29,16 @@ const apis = {
           for (let page of data) {
             let chars = JSON.parse(page);
             parsedChars.push(chars);
-            //at this point we should have an array of objects, each of which has a results property.
           }
-          //here we want to pull out the results property of each element, which is an array, and concat it to what starts as an empty array.
-          //so loop through parsedChars and build characters
-          let characters = [];
+            let characters = [];
           for (let index of parsedChars) {
-            console.log('index is: ', index.results);
+            // console.log('index is: ', index.results);
             characters = characters.concat(index.results);
-            console.log('here is characters: ', characters);
-            console.log(characters.length);
+            // console.log('here is characters: ', characters);
+            // console.log(characters.length);
           }
-          res.status(200).send(characters);
+          const sortedChars = helper.sortChars(characters, sortParam);
+          res.status(200).send(sortedChars);
         })
         .catch(err => console.error(err));
     }
