@@ -41,6 +41,43 @@ const apis = {
           res.status(200).send(sortedChars);
         })
         .catch(err => console.error(err));
+    },
+    //fetch all planets from api and parse the info
+    fetchPlanets: () {
+      let planetPromises = [];
+      for(let i = 1; i < 8; i++) {
+        let promise = rp.get(`https://swapi.co/api/planets/?page=${i}`);
+        planetPromises.push(promise);
+      }
+      // console.log(planetPromises);
+      Promise.all(planetPromises)
+      .then((data) => {
+        const parsedPlanets = parseData(data);
+        return parsedPlanets;
+      })
+      .catch(err => console.error(err));
+    },
+    //get the names of the people listed in the residents array of each planet
+    getResidents: (array) {
+      let residents = [];
+      for (let person of array) {
+        let residentPromise = rp.get(` + person + `)
+        .then((data) => {
+          let resident = JSON.parse(data);
+          residents.push(resident.name);
+        })
+        .catch(err => console.error(err));
+      }
+      return residents;
+    },
+    listResidentsByPlanet: (req, res) => {
+      //fetch planets
+      //iterate through parsedPlanets and make new object with each planet having a property called residents - helper function that fetches residents - helper function that formats new object
+      //res.send residents by planet
+
+            res.status(200).send(sortedChars);
+          })
+          .catch(err => console.error(err));
     }
 }
 

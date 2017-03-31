@@ -15,6 +15,7 @@ router.get('/', function (req, res) {
 
 router.get('/character/:name', apis.fetchCharacter);
 router.get('/characters/:sortKey', apis.fetchSortedCharacters);
+router.get('/planetresidents', apis.listResidentsByPlanet);
 
 app.listen(8080, function () {
   console.log('Back-end API app is listening on port 8080')
