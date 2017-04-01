@@ -2,6 +2,7 @@ import rp from 'request-promise';
 import helper from './helper.js';
 
 const apis = {
+
   fetchCharacter: (req, res) => {
     const name = req.params.name;
     rp.get(`https://swapi.co/api/people/?search=${name}`)
@@ -15,70 +16,81 @@ const apis = {
       })
       .catch(err => console.error(err));
   },
+
   fetchSortedCharacters: (req, res) => {
     const sortParam = req.params.sortKey
-    let parsedChars = [];
     let promises = [];
     for(let i = 1; i < 6; i++) {
       let promise = rp.get(`https://swapi.co/api/people/?page=${i}`);
       promises.push(promise);
     }
-    // console.log(promises);
     Promise.all(promises)
         .then((data) => {
-          for (let page of data) {
-            let chars = JSON.parse(page);
-            parsedChars.push(chars);
-          }
-            let characters = [];
-          for (let index of parsedChars) {
-            // console.log('index is: ', index.results);
-            characters = characters.concat(index.results);
-            // console.log('here is characters: ', characters);
-            // console.log(characters.length);
-          }
+          const characters = helper.parseData(data);
           const sortedChars = helper.sortChars(characters, sortParam);
           res.status(200).send(sortedChars);
         })
         .catch(err => console.error(err));
     },
-    //fetch all planets from api and parse the info
-    fetchPlanets: () {
-      let planetPromises = [];
-      for(let i = 1; i < 8; i++) {
-        let promise = rp.get(`https://swapi.co/api/planets/?page=${i}`);
-        planetPromises.push(promise);
-      }
-      // console.log(planetPromises);
-      Promise.all(planetPromises)
-      .then((data) => {
-        const parsedPlanets = parseData(data);
-        return parsedPlanets;
-      })
-      .catch(err => console.error(err));
-    },
-    //get the names of the people listed in the residents array of each planet
-    getResidents: (array) {
-      let residents = [];
-      for (let person of array) {
-        let residentPromise = rp.get(` + person + `)
-        .then((data) => {
-          let resident = JSON.parse(data);
-          residents.push(resident.name);
-        })
-        .catch(err => console.error(err));
-      }
-      return residents;
-    },
-    listResidentsByPlanet: (req, res) => {
-      //fetch planets
-      //iterate through parsedPlanets and make new object with each planet having a property called residents - helper function that fetches residents - helper function that formats new object
-      //res.send residents by planet
 
-            res.status(200).send(sortedChars);
-          })
-          .catch(err => console.error(err));
+    listResidentsByPlanet: (req, res) => {
+      let planetsWithResidents = {};
+      let planetPromises = [];
+      //get all the pages of planets
+      for(let i = 1; i < 8; i++) {
+        let planetPage =
+        rp.get(`https://swapi.co/api/planets/?page=${i}`)
+          planetPromises.push(planetPage);
+      }
+      Promise.all(planetPromises)
+        //parse the data from the api calls
+        .then((data) => {
+          const parsedPlanets = helper.parseData(data);
+          return parsedPlanets;
+        })
+        .then((parsedPlanets) => {
+          let residentPromises = [];
+          //create a property on planetsWithResidents for each planet
+          for (let planet of parsedPlanets) {
+            //each planet has an array of residents
+            planetsWithResidents[planet.name] = {
+              'residents': planet.residents
+            }
+            //loop through array and build another array of api calls
+            for (let resident of planet.residents) {
+              let residentCall = rp.get(`${resident}`)
+              residentPromises.push(residentCall);
+            }
+            //get all the residents from the one planet and parse list
+            Promise.all(residentPromises)
+              .then((data) => {
+                let parsedPeople = [];
+                for (let person of data) {
+                  let parsedPerson = JSON.parse(person);
+                  parsedPeople.push(parsedPerson);
+                }
+                console.log('parsedPeople: ', parsedPeople);
+                return parsedPeople;
+              })
+              //push the names of each resident to residentNames array
+              .then((parsedPeople) => {
+                let residentNames =[];
+                for (let index of parsedPeople) {
+                  residentNames.push(index.name);
+                };
+                // console.log('residentNames: ', residentNames)
+                planetsWithResidents[planet.name] = {
+                  'residents': residentNames
+                }
+              })
+          }
+                return planetsWithResidents;
+        })
+              .then((results) => {
+                return res.send(planetsWithResidents);
+              })
+              .catch(err => console.error(err));
     }
-}
+};
 
 module.exports = apis;

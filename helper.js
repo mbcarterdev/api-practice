@@ -15,6 +15,7 @@ const helper = {
     }
   },
   parseData: (data) => {
+    console.log('made it to the parseData function');
     let parsedPages = [];
     for (let page of data) {
       let parsedPage = JSON.parse(page);
@@ -27,17 +28,8 @@ const helper = {
       // console.log('here is results: ', results);
       // console.log(results.length);
     }
+    // console.log('results worked here');
     return results;
-  },
-  buildResidentsByPlanetList: (planetArray, residentArray) => {
-    let planets ={};
-    for (let planet of planetArray) {
-      planets.planet = {
-        name: planet.name,
-        residents: residentArray
-
-
-    }
   }
-};
+}
 module.exports = helper;
